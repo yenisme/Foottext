@@ -1,0 +1,10 @@
+Package: hahios
+Name: FPS Rainbow Color
+Depends: mobilesubstrate
+Version: 1.0
+Architecture: iphoneos-arm
+Description:HoangAnhHackiPA (HAHiOS)
+Maintainer: HoangAnh
+Author: HoangAnh
+Section: Tweaks
+Homepage: none
