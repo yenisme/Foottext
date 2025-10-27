@@ -34,122 +34,83 @@
 }
 
 - (void)initDisplayLabel {
-    // HUD góc phải trên
-    CGRect frame = CGRectMake(SCREEN_WIDTH - 110, 28, 105, 26);
-    self.displayLabel = [[UILabel alloc] initWithFrame:frame];
-    self.displayLabel.layer.cornerRadius = 8;
+
+CGRect frame = CGRectMake([UIScreen mainScreen].bounds.size.width / 4 - 4, [UIScreen mainScreen].bounds.size.height - 12, [UIScreen mainScreen].bounds.size.width / 2  + 10, 16);
+    self.displayLabel = [[UILabel alloc] initWithFrame: frame];
+    self.displayLabel.layer.cornerRadius = 12;
     self.displayLabel.clipsToBounds = YES;
-    self.displayLabel.textAlignment = NSTextAlignmentCenter;
+    self.displayLabel.textAlignment = NSTextAlignmentLeft;
+        self.displayLabel.textAlignment = NSTextAlignmentCenter;
     self.displayLabel.userInteractionEnabled = NO;
 
-    // Nền mờ trong suốt
-    self.displayLabel.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.25];
-    self.displayLabel.textColor = [UIColor whiteColor];
-    self.displayLabel.font = [UIFont monospacedDigitSystemFontOfSize:12 weight:UIFontWeightBold];
+//  self.displayLabel.backgroundColor = [UIColor colorWithWhite:0.000 alpha:0.200]; //background
 
-    // Viền trong suốt ban đầu (sẽ được fill bằng gradient)
-    self.displayLabel.layer.borderWidth = 0;
-
-    // Ánh sáng glow chữ
-    self.displayLabel.layer.shadowRadius = 10.0;
-    self.displayLabel.layer.shadowOpacity = 1.0;
-    self.displayLabel.layer.shadowOffset = CGSizeZero;
-    self.displayLabel.layer.masksToBounds = NO;
-
-    // ✅ Tạo gradient layer cho viền ngoài
-    CAGradientLayer *gradientBorder = [CAGradientLayer layer];
-    gradientBorder.frame = self.displayLabel.bounds;
-    gradientBorder.colors = @[
-        (__bridge id)[UIColor redColor].CGColor,
-        (__bridge id)[UIColor orangeColor].CGColor,
-        (__bridge id)[UIColor yellowColor].CGColor,
-        (__bridge id)[UIColor greenColor].CGColor,
-        (__bridge id)[UIColor cyanColor].CGColor,
-        (__bridge id)[UIColor blueColor].CGColor,
-        (__bridge id)[UIColor purpleColor].CGColor
-    ];
-    gradientBorder.startPoint = CGPointMake(0, 0);
-    gradientBorder.endPoint = CGPointMake(1, 1);
-    gradientBorder.cornerRadius = self.displayLabel.layer.cornerRadius;
-    gradientBorder.name = @"gradientBorder";
-
-    // Mask gradient theo viền chữ
-    CAShapeLayer *shape = [CAShapeLayer layer];
-    shape.lineWidth = 2.0;
-    shape.path = [UIBezierPath bezierPathWithRoundedRect:self.displayLabel.bounds cornerRadius:self.displayLabel.layer.cornerRadius].CGPath;
-    shape.fillColor = [UIColor clearColor].CGColor;
-    shape.strokeColor = [UIColor blackColor].CGColor;
-    gradientBorder.mask = shape;
-
-    [self.displayLabel.layer addSublayer:gradientBorder];
-
-    // Thêm layer glow phụ để tạo ánh sáng lan ngoài
-    CALayer *glowLayer = [CALayer layer];
-    glowLayer.frame = self.displayLabel.bounds;
-    glowLayer.backgroundColor = [UIColor clearColor].CGColor;
-    glowLayer.shadowColor = [UIColor colorWithRed:0.2 green:1.0 blue:0.3 alpha:1.0].CGColor;
-    glowLayer.shadowRadius = 18.0;
-    glowLayer.shadowOpacity = 0.8;
-    glowLayer.shadowOffset = CGSizeZero;
-    glowLayer.name = @"glowLayer";
-    [self.displayLabel.layer insertSublayer:glowLayer below:self.displayLabel.layer];
+    _font = [UIFont fontWithName:@"Menlo" size:14];
+    if (_font) {
+        _subFont = [UIFont fontWithName:@"Menlo" size:4];
+    } else {
+        _font = [UIFont fontWithName:@"Courier" size:14];
+        _subFont = [UIFont fontWithName:@"Courier" size:4];
+    }
 
     [self initCADisplayLink];
+
     [[UIApplication sharedApplication].keyWindow addSubview:self.displayLabel];
 }
-- (void)updateDisplayLabelText:(float)fps {
-    // Hiệu ứng rainbow mượt (đổi màu liên tục)
-    static CGFloat hue = 0;
-    hue += 0.005;
-    if (hue > 1.0) hue = 0;
-    UIColor *color = [UIColor colorWithHue:hue saturation:1.0 brightness:1.0 alpha:1.0];
 
-    // Hiển thị chữ
-    self.displayLabel.text = [NSString stringWithFormat:@"Khổng Mạnh Yên | %.0f FPS", fps];
-    self.displayLabel.textColor = color;
-    self.displayLabel.layer.shadowColor = color.CGColor;
-
-    // Cập nhật glow layer màu theo chữ
-    CALayer *glowLayer = nil;
-    for (CALayer *layer in self.displayLabel.layer.sublayers) {
-        if ([layer.name isEqualToString:@"glowLayer"]) {
-            glowLayer = layer;
-            break;
-        }
-    }
-    if (glowLayer) {
-        glowLayer.shadowColor = color.CGColor;
-    }
-
-    // Gradient border quay vòng liên tục
-    CAGradientLayer *gradientBorder = nil;
-    for (CALayer *layer in self.displayLabel.layer.sublayers) {
-        if ([layer.name isEqualToString:@"gradientBorder"]) {
-            gradientBorder = (CAGradientLayer *)layer;
-            break;
-        }
-    }
-    if (gradientBorder) {
-        gradientBorder.colors = @[
-            (__bridge id)[UIColor colorWithHue:hue saturation:1.0 brightness:1.0 alpha:1.0].CGColor,
-            (__bridge id)[UIColor colorWithHue:hue + 0.2 saturation:1.0 brightness:1.0 alpha:1.0].CGColor,
-            (__bridge id)[UIColor colorWithHue:hue + 0.4 saturation:1.0 brightness:1.0 alpha:1.0].CGColor,
-            (__bridge id)[UIColor colorWithHue:hue + 0.6 saturation:1.0 brightness:1.0 alpha:1.0].CGColor,
-            (__bridge id)[UIColor colorWithHue:hue + 0.8 saturation:1.0 brightness:1.0 alpha:1.0].CGColor
-        ];
-    }
-
-    // Hiệu ứng nhấp sáng
-    [UIView animateWithDuration:0.12 animations:^{
-        self.displayLabel.layer.shadowRadius = 18.0;
-        self.displayLabel.transform = CGAffineTransformMakeScale(1.06, 1.06);
-    } completion:^(BOOL finished) {
-        [UIView animateWithDuration:0.25 animations:^{
-            self.displayLabel.layer.shadowRadius = 12.0;
-            self.displayLabel.transform = CGAffineTransformIdentity;
-        }];
-    }];
+- (void)initCADisplayLink {
+    self.link = [CADisplayLink displayLinkWithTarget:self selector:@selector(tick:)];
+    [self.link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 }
+
+- (void)tick:(CADisplayLink *)link
+{
+    if(self.lastTime == 0){
+        self.lastTime = link.timestamp;
+        return;
+    }
+    self.count += 1;
+    NSTimeInterval delta = link.timestamp - _lastTime;
+    if(delta >= 1.f){
+        self.lastTime = link.timestamp;
+        float fps = self.count / delta;
+        self.count = 0;
+        [self updateDisplayLabelText: fps];
+    }
+}
+
+- (void)updateDisplayLabelText: (float) fps
+{
+
+
+
+    NSMutableString *mustr = [[NSMutableString alloc] init];
+    [mustr appendFormat:@"%@",self.getSystemDate];
+
+
+    self.displayLabel.text = [NSString stringWithFormat:@"Khổng Mạnh Yên"];//fps
+
+        // Tạo màu rainbow dựa theo thời gian
+    static CGFloat hue = 0;
+    hue += 0.002; // tốc độ đổi màu
+    if (hue > 1.0) hue -= 1.0;
+
+    UIColor *rainbowColor = [UIColor colorWithHue:hue saturation:1.0 brightness:1.0 alpha:1.0];
+    self.displayLabel.textColor = rainbowColor;
+
+    self.displayLabel.font = [UIFont boldSystemFontOfSize:8];
+}
+
+- (NSString *)getSystemDate
+{
+    NSDate *currentDate = [NSDate date];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+
+
+    [dateFormatter setDateFormat:@"EEEE,dd/MM/yyyy | HH:mm:ss"];
+
+    return [dateFormatter stringFromDate:currentDate];
+}
+
 @end
 
- 
